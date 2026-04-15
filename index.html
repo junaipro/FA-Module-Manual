@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FCM FA 운영매뉴얼 v1.0</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;}
+html,body{height:100%;overflow:hidden;}
+.app{display:flex;flex-direction:column;height:100vh;background:#f0f2f5;}
+.topbar{background:#1a2340;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;flex-shrink:0;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-icon{width:28px;height:28px;background:#3a5bd9;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.topbar-title{color:#fff;font-size:14px;font-weight:500;}
+.topbar-sub{color:#4a6a9a;font-size:13px;margin-left:4px;}
+.topbar-badge{color:#a0b0cc;font-size:12px;}
+.body{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:260px;min-width:260px;background:#1e2d4a;display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:#2e4570;border-radius:2px;}
+.sidebar-section-label{font-size:11px;color:#5a7299;letter-spacing:0.06em;padding:18px 16px 6px;text-transform:uppercase;}
+.nav-item{cursor:pointer;user-select:none;}
+.nav-label{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;font-size:13px;color:#a0b8d8;transition:background 0.1s;}
+.nav-label:hover{background:#253858;color:#d0e0f5;}
+.nav-label.active{background:#3a5bd9;color:#fff;font-weight:500;}
+.nav-label.l0{font-weight:500;color:#c8daf5;padding:10px 16px;}
+.nav-label.l1{font-weight:500;color:#c8daf5;padding:10px 16px;}
+.nav-label.l2{padding-left:26px;font-size:12.5px;}
+.nav-label.l3{padding-left:40px;font-size:12px;color:#7a9bbf;}
+.nav-label.l4{padding-left:54px;font-size:11.5px;color:#5a7a9f;}
+.nav-label.active.l2,.nav-label.active.l3,.nav-label.active.l4{color:#fff;}
+.nav-arrow{font-size:9px;color:#4a6a9a;transition:transform 0.15s;flex-shrink:0;margin-left:4px;}
+.nav-arrow.open{transform:rotate(90deg);}
+.children{display:none;}
+.children.open{display:block;}
+.nav-divider{height:1px;background:#28405f;margin:4px 16px;}
+.main{flex:1;overflow-y:auto;padding:24px 32px;}
+.main::-webkit-scrollbar{width:6px;}
+.main::-webkit-scrollbar-track{background:#f0f2f5;}
+.main::-webkit-scrollbar-thumb{background:#c8d4e8;border-radius:3px;}
+.hero{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);border-radius:14px;padding:28px 32px;margin-bottom:24px;color:#fff;}
+.hero h1{font-size:22px;font-weight:500;margin-bottom:8px;}
+.hero p{font-size:13px;color:#bfdbfe;line-height:1.8;margin-bottom:22px;}
+.hero-stats{display:flex;gap:12px;}
+.stat-box{background:rgba(255,255,255,0.13);border-radius:10px;padding:14px 20px;text-align:center;flex:1;}
+.stat-num{font-size:24px;font-weight:500;color:#fff;}
+.stat-label{font-size:11px;color:#bfdbfe;margin-top:3px;}
+.breadcrumb{font-size:12px;color:#6b7eaa;margin-bottom:16px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.breadcrumb .sep{color:#9aabcc;}
+.section-title{font-size:18px;font-weight:500;color:#1e2d4a;margin-bottom:4px;}
+.section-sub{font-size:12px;color:#6b7eaa;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #dde4f0;}
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e4eaf5;cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s;}
+.card:hover{box-shadow:0 4px 18px rgba(37,99,235,0.12);border-color:#93c5fd;}
+.card-icon{font-size:24px;margin-bottom:10px;}
+.card-title{font-size:13.5px;font-weight:500;color:#1e2d4a;margin-bottom:6px;}
+.card-desc{font-size:12px;color:#6b7eaa;line-height:1.65;margin-bottom:14px;}
+.card-link{font-size:12px;color:#2563eb;font-weight:500;}
+.info-card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e4eaf5;margin-bottom:14px;}
+.info-card h4{font-size:13px;font-weight:500;color:#1e2d4a;margin-bottom:8px;}
+.info-card p{font-size:12.5px;color:#6b7eaa;line-height:1.7;}
+.sub-cards{display:grid;gap:10px;margin-top:10px;}
+.sub-card{background:#f5f7fc;border-radius:9px;padding:13px 16px;cursor:pointer;border:1px solid #dde4f0;transition:border-color 0.12s,background 0.12s;}
+.sub-card:hover{border-color:#93c5fd;background:#eef3fd;}
+.sub-card p{font-size:13px;font-weight:500;color:#1e2d4a;margin-bottom:2px;}
+.sub-card span{font-size:11.5px;color:#8a9bbf;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-icon">📋</div>
+      <span class="topbar-title">FCM FA 운영매뉴얼</span>
+      <span class="topbar-sub">Fixed Assets</span>
+    </div>
+    <span class="topbar-badge">v1.0 · 2011.06.07</span>
+  </div>
+  <div class="body">
+    <div class="sidebar">
+      <div class="sidebar-section-label">메뉴 구성</div>
+      <div id="nav"></div>
+    </div>
+    <div class="main" id="main"></div>
+  </div>
+</div>
+
+<script>
+const icons={
+  "home":"🏠",
+  "1":"📌","1.1":"📋","1.1.1":"🔄",
+  "1.1.1.1":"⚙️","1.1.1.2":"📥","1.1.1.3":"🔀","1.1.1.4":"📉",
+  "1.1.2":"📖",
+  "2":"📂","2.1":"🗂️","2.1.1":"🏷️","2.1.2":"📍",
+  "2.2":"🏢","2.2.1":"📝","2.2.1.1":"📋","2.2.1.2":"🆕","2.2.1.3":"➕","2.2.1.4":"📒","2.2.2":"🏗️",
+  "2.3":"🔧","2.3.1":"💼","2.3.1.1":"💰","2.3.1.2":"📅","2.3.2":"🔁","2.3.3":"🚚",
+  "2.4":"💸","2.4.1":"🛒","2.4.2":"🗑️",
+  "2.5":"📊","2.5.1":"🔍","2.5.2":"📈","2.5.3":"📆",
+  "2.6":"🔎"
+};
+
+const tree=[
+  {id:"home",num:"",label:"홈"},
+  {id:"1",num:"1",label:"Overview (자산관리개요)",children:[
+    {id:"1.1",num:"1.1",label:"업무처리 절차",children:[
+      {id:"1.1.1",num:"1.1.1",label:"자산관리 전체 업무 흐름도",children:[
+        {id:"1.1.1.1",num:"1.1.1.1",label:"기준정보 관리"},
+        {id:"1.1.1.2",num:"1.1.1.2",label:"취득관리"},
+        {id:"1.1.1.3",num:"1.1.1.3",label:"변동관리"},
+        {id:"1.1.1.4",num:"1.1.1.4",label:"감가상각 관리"},
+      ]},
+      {id:"1.1.2",num:"1.1.2",label:"자산관리 주요용어"},
+    ]},
+  ]},
+  {id:"2",num:"2",label:"업무별 처리방법",children:[
+    {id:"2.1",num:"2.1",label:"자산의 기준정보",children:[
+      {id:"2.1.1",num:"2.1.1",label:"자산분류체계 관리 (Asset Categories)"},
+      {id:"2.1.2",num:"2.1.2",label:"자산위치 관리 (Asset Location)"},
+    ]},
+    {id:"2.2",num:"2.2",label:"자산의 취득관리",children:[
+      {id:"2.2.1",num:"2.2.1",label:"자산의 취득 및 등록",children:[
+        {id:"2.2.1.1",num:"2.2.1.1",label:"등록준비"},
+        {id:"2.2.1.2",num:"2.2.1.2",label:"신규등록 대상 자산"},
+        {id:"2.2.1.3",num:"2.2.1.3",label:"추가정보등록"},
+        {id:"2.2.1.4",num:"2.2.1.4",label:"자산 장부 등재"},
+      ]},
+      {id:"2.2.2",num:"2.2.2",label:"건설중인 자산"},
+    ]},
+    {id:"2.3",num:"2.3",label:"자산의 유지관리",children:[
+      {id:"2.3.1",num:"2.3.1",label:"재무정보 변경",children:[
+        {id:"2.3.1.1",num:"2.3.1.1",label:"취득가액의 변경 (자본적 지출)"},
+        {id:"2.3.1.2",num:"2.3.1.2",label:"내용연수 또는 감가상각방법의 변경"},
+      ]},
+      {id:"2.3.2",num:"2.3.2",label:"분류체계 변경 (Reclassification)"},
+      {id:"2.3.3",num:"2.3.3",label:"이동 (Transfer)"},
+    ]},
+    {id:"2.4",num:"2.4",label:"자산의 매각/폐기",children:[
+      {id:"2.4.1",num:"2.4.1",label:"자산의 매각"},
+      {id:"2.4.2",num:"2.4.2",label:"자산의 폐기"},
+    ]},
+    {id:"2.5",num:"2.5",label:"감가상각 실행",children:[
+      {id:"2.5.1",num:"2.5.1",label:"What-if Analysis"},
+      {id:"2.5.2",num:"2.5.2",label:"감가상각의 추정"},
+      {id:"2.5.3",num:"2.5.3",label:"월 감가상각의 실행"},
+    ]},
+    {id:"2.6",num:"2.6",label:"자산의 조회"},
+  ]},
+];
+
+let activeId="home";
+let openIds=new Set(["1","2"]);
+
+function findNode(nodes,id){
+  for(const n of nodes){if(n.id===id)return n;if(n.children){const r=findNode(n.children,id);if(r)return r;}}return null;
+}
+function getParents(nodes,id,path=[]){
+  for(const n of nodes){
+    if(n.id===id)return[...path,n];
+    if(n.children){const r=getParents(n.children,id,[...path,n]);if(r)return r;}
+  }return null;
+}
+function getLevel(id){
+  if(id==="home")return 0;
+  return id.split('.').length;
+}
+
+function renderNav(nodes,container){
+  nodes.forEach(node=>{
+    const lv=getLevel(node.id);
+    const hasChildren=node.children&&node.children.length>0;
+    const item=document.createElement('div');
+    item.className='nav-item';
+
+    const label=document.createElement('div');
+    label.className='nav-label l'+lv+(activeId===node.id?' active':'');
+
+    const left=document.createElement('span');
+    left.style.cssText='display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden;';
+    const ico=icons[node.id]||'';
+    left.innerHTML=(ico?`<span style="font-size:13px;flex-shrink:0">${ico}</span>`:'')+
+      `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${node.num?node.num+' ':''}${node.label}</span>`;
+    label.appendChild(left);
+
+    if(hasChildren){
+      const arr=document.createElement('span');
+      arr.className='nav-arrow'+(openIds.has(node.id)?' open':'');
+      arr.textContent='▶';
+      label.appendChild(arr);
+    }
+
+    label.addEventListener('click',()=>{
+      if(hasChildren){openIds.has(node.id)?openIds.delete(node.id):openIds.add(node.id);}
+      activeId=node.id;
+      document.getElementById('nav').innerHTML='';
+      renderNav(tree,document.getElementById('nav'));
+      renderContent(node.id);
+    });
+    item.appendChild(label);
+
+    if(hasChildren){
+      const ch=document.createElement('div');
+      ch.className='children'+(openIds.has(node.id)?' open':'');
+      renderNav(node.children,ch);
+      item.appendChild(ch);
+    }
+    container.appendChild(item);
+  });
+}
+
+function renderContent(id){
+  const main=document.getElementById('main');
+  if(id==="home"){
+    main.innerHTML=`
+      <div class="hero">
+        <h1>📋 FCM FA 운영매뉴얼</h1>
+        <p>Fixed Assets 자산관리 시스템 운영 매뉴얼입니다.<br>좌측 메뉴에서 항목을 선택하거나, 아래 카드를 클릭하여 내용을 확인하세요.</p>
+        <div class="hero-stats">
+          <div class="stat-box"><div class="stat-num">2</div><div class="stat-label">전체 챕터</div></div>
+          <div class="stat-box"><div class="stat-num">18</div><div class="stat-label">전체 섹션</div></div>
+          <div class="stat-box"><div class="stat-num">1</div><div class="stat-label">버전</div></div>
+        </div>
+      </div>
+      <div class="cards-grid">
+        <div class="card" onclick="activateNode('1')">
+          <div class="card-icon">📌</div>
+          <div class="card-title">1. Overview (자산관리개요)</div>
+          <div class="card-desc">자산관리 전체 업무 흐름도 및 주요 용어, 업무처리 절차를 안내합니다.</div>
+          <div class="card-link">→ 보기</div>
+        </div>
+        <div class="card" onclick="activateNode('2.2')">
+          <div class="card-icon">🏢</div>
+          <div class="card-title">2.2 자산의 취득관리</div>
+          <div class="card-desc">자산 취득 및 등록, 건설중인 자산 처리 절차를 안내합니다.</div>
+          <div class="card-link">→ 보기</div>
+        </div>
+        <div class="card" onclick="activateNode('2.3')">
+          <div class="card-icon">🔧</div>
+          <div class="card-title">2.3 자산의 유지관리</div>
+          <div class="card-desc">재무정보 변경, 분류체계 변경, 이동 등 유지관리 업무를 안내합니다.</div>
+          <div class="card-link">→ 보기</div>
+        </div>
+        <div class="card" onclick="activateNode('2.5')">
+          <div class="card-icon">📊</div>
+          <div class="card-title">2.5 감가상각 실행</div>
+          <div class="card-desc">What-if Analysis, 감가상각 추정 및 월 실행 절차를 안내합니다.</div>
+          <div class="card-link">→ 보기</div>
+        </div>
+        <div class="card" onclick="activateNode('2.4')">
+          <div class="card-icon">💸</div>
+          <div class="card-title">2.4 자산의 매각/폐기</div>
+          <div class="card-desc">자산 매각 및 폐기 처리 절차를 안내합니다.</div>
+          <div class="card-link">→ 보기</div>
+        </div>
+        <div class="card" onclick="activateNode('2.6')">
+          <div class="card-icon">🔎</div>
+          <div class="card-title">2.6 자산의 조회</div>
+          <div class="card-desc">등록된 자산 정보 조회 및 검색 방법을 안내합니다.</div>
+          <div class="card-link">→ 보기</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const node=findNode(tree,id);
+  if(!node)return;
+  const parents=getParents(tree,id)||[];
+  const bc=parents.map((p,i)=>
+    `<span>${p.num?p.num+' ':''}${p.label}</span>${i<parents.length-1?'<span class="sep">›</span>':''}`
+  ).join('');
+
+  let childSection='';
+  if(node.children&&node.children.length){
+    childSection=`<div class="info-card">
+      <h4>하위 항목</h4>
+      <p style="margin-bottom:10px;">아래 항목을 선택하여 세부 내용을 확인하세요.</p>
+      <div class="sub-cards">${node.children.map(ch=>`
+        <div class="sub-card" onclick="activateNode('${ch.id}')">
+          <p>${icons[ch.id]||''} ${ch.num} ${ch.label}</p>
+          <span>${ch.children?ch.children.length+'개 하위 항목':'세부 내용 보기'}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  let overviewContent = '';
+  if(id === '1') {
+    overviewContent = `
+    <div class="info-card" style="margin-bottom:14px;">
+      <h4 style="margin-bottom:12px;">개요</h4>
+      <p style="font-size:13px;color:#374151;line-height:1.85;">
+        자산관리 모듈(FA : Fixed Assets)은 회사가 영업 목적상 취득하는 자산을 시스템에 등록하여 실물을 관리하는 제반 수단을 제공하는 한편
+        취득원가를 특정 기간에 걸쳐 합리적으로 배분하여 정확한 기간별 회계손익을 계산하는 기능을 제공하며 고정자산(유형·무형자산)의
+        구매부터 처분까지 이루어지는 모든 거래에 대한 정보를 관리합니다.
+      </p>
+      <p style="font-size:13px;color:#374151;line-height:1.85;margin-top:10px;">
+        즉 투자예산의 통제를 받아 고정자산의 구매에 대한 발주 및 입고에 의한 자산의 등재, 건설중인 자산의 완료에 따른 본 자산 등록,
+        직접구매에 의한 자산 등록, 자산 등재 후 이루어지는 이동·재분류·재평가·감가상각·변경·자본적 지출 등 모든 자산관련 거래와
+        매각이나 폐기·손망실 같은 자산의 처분에 이르는 전 라이프 사이클에 걸친 정보가 통합되어 관리됩니다.
+      </p>
+    </div>
+
+    <div class="info-card" style="margin-bottom:14px;">
+      <h4 style="margin-bottom:16px;">시스템 연동 프로세스</h4>
+      <div style="width:100%;overflow-x:auto;">
+        <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:600px;display:block;">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#3a5bd9"/>
+            </marker>
+            <marker id="arr-dash" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+
+          <!-- Center: 자산관리 -->
+          <rect x="300" y="158" width="120" height="64" rx="10" fill="#1e40af" />
+          <text x="360" y="183" text-anchor="middle" fill="#fff" font-size="13" font-weight="500">자산관리</text>
+          <text x="360" y="200" text-anchor="middle" fill="#bfdbfe" font-size="10">(Fixed Assets)</text>
+          <text x="360" y="214" text-anchor="middle" fill="#bfdbfe" font-size="10">전표 → 원장관리</text>
+
+          <!-- 건설중인자산 (top-center) -->
+          <rect x="296" y="30" width="128" height="48" rx="8" fill="#16a34a"/>
+          <text x="360" y="52" text-anchor="middle" fill="#fff" font-size="12" font-weight="500">건설중인 자산</text>
+          <text x="360" y="68" text-anchor="middle" fill="#dcfce7" font-size="10">CIP Management</text>
+
+          <!-- 재무관리 (top-left) -->
+          <rect x="60" y="30" width="110" height="48" rx="8" fill="#7c3aed"/>
+          <text x="115" y="52" text-anchor="middle" fill="#fff" font-size="12" font-weight="500">재무관리</text>
+          <text x="115" y="68" text-anchor="middle" fill="#ede9fe" font-size="10">Financial Mgmt</text>
+
+          <!-- 공사관리 (top-right) -->
+          <rect x="548" y="30" width="110" height="48" rx="8" fill="#ea580c"/>
+          <text x="603" y="52" text-anchor="middle" fill="#fff" font-size="12" font-weight="500">공사관리</text>
+          <text x="603" y="68" text-anchor="middle" fill="#ffedd5" font-size="10">Construction Mgmt</text>
+
+          <!-- 구매관리 (right) -->
+          <rect x="568" y="160" width="110" height="48" rx="8" fill="#0891b2"/>
+          <text x="623" y="182" text-anchor="middle" fill="#fff" font-size="12" font-weight="500">구매관리</text>
+          <text x="623" y="198" text-anchor="middle" fill="#cffafe" font-size="10">Procurement</text>
+
+          <!-- 스프레드시트 (left) -->
+          <rect x="42" y="160" width="110" height="48" rx="8" fill="#64748b"/>
+          <text x="97" y="182" text-anchor="middle" fill="#fff" font-size="12" font-weight="500">스프레드시트</text>
+          <text x="97" y="198" text-anchor="middle" fill="#e2e8f0" font-size="10">Spreadsheet</text>
+
+          <!-- 인사관리 (bottom-left) -->
+          <rect x="60" y="300" width="110" height="48" rx="8" fill="#b45309"/>
+          <text x="115" y="322" text-anchor="middle" fill="#fff" font-size="12" font-weight="500">인사관리</text>
+          <text x="115" y="338" text-anchor="middle" fill="#fef3c7" font-size="10">HR Management</text>
+
+          <!-- ADI (bottom-right) -->
+          <rect x="548" y="278" width="110" height="48" rx="8" fill="#475569"/>
+          <text x="603" y="300" text-anchor="middle" fill="#fff" font-size="12" font-weight="500">ADI</text>
+          <text x="603" y="316" text-anchor="middle" fill="#e2e8f0" font-size="10">Asset Data Import</text>
+
+          <!-- 재고관리 (bottom-right lower) -->
+          <rect x="548" y="340" width="110" height="32" rx="8" fill="#0f766e"/>
+          <text x="603" y="361" text-anchor="middle" fill="#fff" font-size="11" font-weight="500">재고관리 (Inventory)</text>
+
+          <!-- ARROWS: 재무관리 → 건설중인자산 (자산정보) -->
+          <line x1="170" y1="54" x2="295" y2="54" stroke="#3a5bd9" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="232" y="48" text-anchor="middle" fill="#3a5bd9" font-size="10">자산정보</text>
+
+          <!-- 공사관리 → 건설중인자산 (공급자정보) -->
+          <line x1="548" y1="54" x2="425" y2="54" stroke="#3a5bd9" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="487" y="48" text-anchor="middle" fill="#3a5bd9" font-size="10">공급자정보</text>
+
+          <!-- 건설중인자산 → 자산관리 -->
+          <line x1="360" y1="78" x2="360" y2="158" stroke="#3a5bd9" stroke-width="2" marker-end="url(#arr)"/>
+
+          <!-- 스프레드시트 → 자산관리 (예산정보) -->
+          <line x1="152" y1="184" x2="299" y2="184" stroke="#3a5bd9" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="225" y="178" text-anchor="middle" fill="#3a5bd9" font-size="10">예산정보</text>
+
+          <!-- 구매관리 → 자산관리 (실물자산) -->
+          <line x1="568" y1="184" x2="421" y2="184" stroke="#3a5bd9" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="495" y="178" text-anchor="middle" fill="#3a5bd9" font-size="10">실물자산</text>
+
+          <!-- ADI → 자산관리 (일괄등록) -->
+          <line x1="548" y1="302" x2="421" y2="210" stroke="#3a5bd9" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="494" y="260" text-anchor="middle" fill="#3a5bd9" font-size="10">일괄등록</text>
+
+          <!-- 인사관리 → 자산관리 (적원정보, dashed) -->
+          <line x1="170" y1="320" x2="299" y2="210" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-dash)"/>
+          <text x="218" y="268" text-anchor="middle" fill="#94a3b8" font-size="10">직원정보</text>
+
+          <!-- 재고관리 → 자산관리 (단위/Item, dashed) -->
+          <line x1="548" y1="356" x2="421" y2="220" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-dash)"/>
+          <text x="510" y="330" text-anchor="middle" fill="#94a3b8" font-size="10">단위/Item정보</text>
+        </svg>
+      </div>
+      <div style="display:flex;gap:20px;margin-top:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#6b7eaa;">
+          <div style="width:24px;height:2px;background:#3a5bd9;"></div><span>실선: 직접 연동</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#6b7eaa;">
+          <div style="width:24px;height:2px;background:#94a3b8;border-top:2px dashed #94a3b8;"></div><span>점선: 참조 연동</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card" style="margin-bottom:14px;">
+      <h4 style="margin-bottom:12px;">주요 연동 내용</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:#f5f7fc;border-radius:8px;padding:12px 14px;border:1px solid #dde4f0;">
+          <p style="font-size:12px;font-weight:500;color:#1e2d4a;margin-bottom:4px;">📥 재무관리 → FA</p>
+          <p style="font-size:11.5px;color:#6b7eaa;line-height:1.6;">거래처정보, 자산의 품명·수량·금액 정보가 취득자산 신규 등록 시 그대로 적용</p>
+        </div>
+        <div style="background:#f5f7fc;border-radius:8px;padding:12px 14px;border:1px solid #dde4f0;">
+          <p style="font-size:12px;font-weight:500;color:#1e2d4a;margin-bottom:4px;">👤 인사관리 → FA</p>
+          <p style="font-size:11.5px;color:#6b7eaa;line-height:1.6;">자산 등록·이전 업무에서 종업원 정보를 입력하며, HR 또는 AP에서 Employee 정보 등록 활용</p>
+        </div>
+        <div style="background:#f5f7fc;border-radius:8px;padding:12px 14px;border:1px solid #dde4f0;">
+          <p style="font-size:12px;font-weight:500;color:#1e2d4a;margin-bottom:4px;">📊 FA → 원장관리(GL)</p>
+          <p style="font-size:11.5px;color:#6b7eaa;line-height:1.6;">취득·감가상각·매각·변경 등 모든 자산 활동의 회계정보가 자동 생성되어 총계정원장으로 Transfer</p>
+        </div>
+        <div style="background:#f5f7fc;border-radius:8px;padding:12px 14px;border:1px solid #dde4f0;">
+          <p style="font-size:12px;font-weight:500;color:#1e2d4a;margin-bottom:4px;">🏗️ 건설중인 자산 → FA</p>
+          <p style="font-size:11.5px;color:#6b7eaa;line-height:1.6;">공사 완료 시 건설중인 자산에서 본 자산으로 등록 전환, 구매·공사관리와 연동</p>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  main.innerHTML=`
+    <div class="breadcrumb">${bc}</div>
+    <div class="section-title">${icons[node.id]||''} ${node.num} ${node.label}</div>
+    <div class="section-sub">운영매뉴얼 · FCM Fixed Assets</div>
+    ${overviewContent || `<div class="info-card">
+      <h4>개요</h4>
+      <p><strong>${node.label}</strong>에 대한 운영 절차 및 가이드입니다. 해당 내용은 실제 슬라이드 내용으로 채워질 수 있습니다.</p>
+    </div>`}
+    ${childSection}`;
+}
+
+window.activateNode=function(id){
+  const node=findNode(tree,id);if(!node)return;
+  const parents=getParents(tree,id)||[];
+  parents.forEach(p=>openIds.add(p.id));
+  if(node.children)openIds.add(id);
+  activeId=id;
+  document.getElementById('nav').innerHTML='';
+  renderNav(tree,document.getElementById('nav'));
+  renderContent(id);
+};
+
+renderNav(tree,document.getElementById('nav'));
+renderContent("home");
+</script>
+</body>
+</html>
